@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRUD_Api.Migrations
 {
     [DbContext(typeof(dbcontext))]
-    [Migration("20250624190343_DBdepartment")]
-    partial class DBdepartment
+    [Migration("20250702092329_UpdateGenderToBool")]
+    partial class UpdateGenderToBool
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,6 +59,9 @@ namespace CRUD_Api.Migrations
                     b.Property<string>("Fathername")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Gender")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()

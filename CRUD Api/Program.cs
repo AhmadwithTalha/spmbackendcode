@@ -6,22 +6,23 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-// 🔹 Enable CORS
+// CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular",
-        builder => builder
-            .WithOrigins("http://localhost:4200")
-            .AllowAnyMethod()
-            .AllowAnyHeader());
+    options.AddPolicy("AllowAngular", builder =>
+    {
+        builder.WithOrigins("http://localhost:4200")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
 });
 
-// 🔹 Add Controllers
+// Controllers
 builder.Services.AddControllers();
 
-// 🔐 Configure JWT Authentication
+// ✅ ONLY ONE JWT AUTH block
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -37,7 +38,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// 🔎 Swagger Configuration with JWT Support
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -69,25 +70,23 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// 🔗 Connect to SQL Server
+// DB Connection
 builder.Services.AddDbContext<dbcontext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Conn")));
 
 var app = builder.Build();
 
-// 🔧 Middleware Pipeline
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseCors("AllowAngular");
 
-app.UseCors("AllowAngular");  // 👈 Allow Angular frontend
-app.UseAuthentication();      // 👈 Use authentication BEFORE authorization
+app.UseAuthentication();  // 👈 Must be BEFORE UseAuthorization
 app.UseAuthorization();
-// program file
-app.MapControllers();
 
+app.MapControllers();
 app.Run();

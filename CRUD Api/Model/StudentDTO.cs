@@ -9,6 +9,8 @@
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
         public int DepartmentID { get; set; }
+
+        public bool Gender { get; set; }
         //public string DepartmentName { get; set;} 
 
     }

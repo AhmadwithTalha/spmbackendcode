@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-
+using Microsoft.AspNetCore.Identity;
 
 namespace CRUD_Api.Controller
 {
@@ -24,45 +23,14 @@ namespace CRUD_Api.Controller
         {
             _dbcontext = dbcontext;
         }
-        //[HttpPost("AddStudent")]
 
-        //[HttpPost("AddStudent")]
-        //public async Task<IActionResult> AddStudent([FromBody] StudentDTO cd)
-        //{
-        //    if (cd.Password != cd.ConfirmPassword)
-        //        return BadRequest("Password and Confirm Password do not match.");
-
-        //    // Lookup DepartmentID from DepartmentName
-        //    var department = await _dbcontext.Departments
-        //        .FirstOrDefaultAsync(d => d.DepartmentName == cd.DepartmentName);
-
-        //    if (department == null)
-        //        return BadRequest("Department not found.");
-
-        //    var add = new crudclass
-        //    {
-        //        Name = cd.Name,
-        //        Fathername = cd.Fathername,
-        //        Dateofbirth = cd.Dateofbirth,
-        //        Password = cd.Password,
-        //        DepartmentID = department.DepartmentID
-        //    };
-
-        //    _dbcontext.Add(add);
-        //    await _dbcontext.SaveChangesAsync();
-
-        //    return Ok("Student Added Successfully");
-        //}
 
         [HttpPost("AddStudent")]
-        //[Authorize]
-
         public async Task<IActionResult> AddStudent([FromBody] StudentDTO cd)
         {
             if (cd.Password != cd.ConfirmPassword)
                 return BadRequest("Password and Confirm Password do not match.");
 
-            // ✅ Check if the DepartmentID is valid (not name)
             var department = await _dbcontext.Departments
                 .FirstOrDefaultAsync(d => d.DepartmentID == cd.DepartmentID);
 
@@ -74,9 +42,12 @@ namespace CRUD_Api.Controller
                 Name = cd.Name,
                 Fathername = cd.Fathername,
                 Dateofbirth = cd.Dateofbirth,
-                Password = cd.Password,
-                DepartmentID = cd.DepartmentID   // ✅ use directly from frontend
+                Gender = cd.Gender,
+                DepartmentID = cd.DepartmentID
             };
+
+            var passwordHasher = new PasswordHasher<crudclass>();
+            add.Password = passwordHasher.HashPassword(add, cd.Password); // ✅ fixed this line
 
             _dbcontext.Add(add);
             await _dbcontext.SaveChangesAsync();
@@ -85,13 +56,11 @@ namespace CRUD_Api.Controller
         }
 
 
+
         [HttpGet("ShowStudentData")]
         //[Authorize]
         public async Task<IActionResult> ShowStudentData()
         {
-            //var data = await _dbcontext.Data
-            //    .Include(s => s.Department) // ensure department info is loaded
-            //    .ToListAsync();
             var data = await _dbcontext.Data.ToListAsync();
 
 
@@ -106,6 +75,7 @@ namespace CRUD_Api.Controller
                 Name = n.Name,
                 Fathername = n.Fathername,
                 Dateofbirth = n.Dateofbirth,
+                Gender = n.Gender,
                 DepartmentID = n.DepartmentID, // only if StudentDTO has this property
                 //DepartmentName = n.Department?.DepartmentName ?? ""
             }).ToList();
@@ -140,16 +110,14 @@ namespace CRUD_Api.Controller
             data.Name = put.Name;
             data.Fathername = put.Fathername;
             data.Dateofbirth = put.Dateofbirth;
+            data.Gender = put.Gender;
             data.DepartmentID = put.DepartmentID;
 
             _dbcontext.Data.Update(data);
             await _dbcontext.SaveChangesAsync();
 
             return Ok("Student Data is Updated");
-
         }
-
-        
         [HttpGet("ShowDataById/{id}")]
         //[Authorize]
         public async Task <IActionResult> showData(int id)
